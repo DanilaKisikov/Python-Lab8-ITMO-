@@ -6,12 +6,18 @@ import cv2
 xPoints = 450
 yPoints = 800
 color = (0, 255, 0)
-MIN_MATCH_COUNT = 1
+MIN_MATCH_COUNT = 3
 
 
 def imageTracker(videoPath, imagePath):
+    averX = -1
+    averY = -1
     video = cv2.VideoCapture(videoPath)
     marker = cv2.imread(imagePath, cv2.IMREAD_GRAYSCALE)
+
+    fly = cv2.imread('fly64.png', 3)
+
+    fly_y, fly_x, fly_color = fly.shape
 
     downPoints = (xPoints, yPoints)
 
@@ -44,17 +50,24 @@ def imageTracker(videoPath, imagePath):
                 good.append(m)
 
         if len(good) > MIN_MATCH_COUNT:
-            print(good)
             boolean = True
 
             src_pts = np.float32([kp[m.queryIdx].pt for m in good])
-            print(src_pts)
+
+            averX = round(np.average(src_pts[:, 0]))
+            averY = round(np.average(src_pts[:, 1]))
+            print("hello")
+            print(src_pts[:, 0])
+            print(src_pts[:, 1])
 
             for m in src_pts:
                 print(m)
                 x = round(m[0])
                 y = round(m[1])
                 cv2.rectangle(frame, (x, y), (x + 5, y + 5), color, 2)
+
+        if averX != -1:
+            frame[averY - round(fly_y/2): averY + round(fly_y/2), averX - round(fly_x/2): averX + round(fly_x/2)] = fly
 
         renderTime = time.perf_counter() - startTime
         # print("Render took " + str(renderTime))
@@ -78,3 +91,5 @@ def imageTracker(videoPath, imagePath):
 
 if __name__ == "__main__":
     imageTracker("video.MP4", "ref-point.jpg")
+
+cv2.destroyAllWindows()
